@@ -1,0 +1,162 @@
+{
+  "name": "WhatsApp Request Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-request",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        0
+      ],
+      "id": "f3d7875d-e6c6-4f82-8c00-b4a188c34558",
+      "name": "Webhook",
+      "webhookId": "b38a4258-d481-4957-80b2-f1d7f43565c7"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse common WhatsApp webhook payload shapes (Twilio / Meta Cloud / Generic)\nconst data = items[0].json || {};\nlet guestPhone =\ndata.From ||\ndata.from ||\ndata.from_number ||\ndata.fromPhone ||\ndata.from_phone ||\n(data.sender && data.sender.phone) ||\nnull;\nlet requestText =\ndata.Body ||\n(data.message && data.message.text && data.message.text.body) ||\n(data.messages && data.messages[0] && data.messages[0].text && data.messages[0].text.body) ||\ndata.text ||\ndata.body ||\n'';\nreturn [{ json: { guestPhone, requestText } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        16
+      ],
+      "id": "242d6e5b-25e8-4be6-855e-2bf3a81e6345",
+      "name": "Parse WhatsApp"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "Key: Content-Type\nValue: application/json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"guestPhone\": \"={{ $json[\"from\"] || $json[\"From\"] }}\",\n  \"requestText\": \"={{ $json[\"message\"][\"text\"][\"body\"] || $json[\"Body\"] }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        352,
+        16
+      ],
+      "id": "cfb237a6-1b50-4afe-bb41-cb967f5e625e",
+      "name": "Send to NestJS"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Request received! Our staff will assist you soon.\n",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        560,
+        16
+      ],
+      "id": "609fc001-94b1-46c4-bdf8-1afa3db27df1",
+      "name": "Respond"
+    }
+  ],
+  "pinData": {
+    "Parse WhatsApp": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      },
+      {
+        "json": {
+          "name": "Second item",
+          "code": 2
+        }
+      }
+    ],
+    "Respond": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      },
+      {
+        "json": {
+          "name": "Second item",
+          "code": 2
+        }
+      }
+    ],
+    "Send to NestJS": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      },
+      {
+        "json": {
+          "name": "Second item",
+          "code": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Send to NestJS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to NestJS": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "16d3a475-13f5-48fa-b6f1-2e95afceeffd",
+  "meta": {
+    "instanceId": "2aacd77c6a76ba6a931024ab8ee2a01dd801db481b22ef3a463a7e23b5ddfd08"
+  },
+  "id": "gL1jyaXhGjzWyAxm",
+  "tags": []
+}
