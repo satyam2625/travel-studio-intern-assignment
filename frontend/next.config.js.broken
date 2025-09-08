@@ -1,0 +1,14 @@
+$nc = @'
+const path = require("path");
+
+/** @type {import("next").NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  // set the tracing root to parent to avoid multiple-lockfile warnings
+  outputFileTracingRoot: path.join(__dirname, ".."),
+  // add other stable config options below if needed
+};
+
+module.exports = nextConfig;
+'@
+Set-Content -Path next.config.js -Value $nc -Force
